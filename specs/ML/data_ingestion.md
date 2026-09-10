@@ -1,6 +1,6 @@
 | Phase | Spec | Module | Priority | Depends On | Unlocks | Status |
 |-------|------|--------|----------|------------|---------|--------|
-| **1** | `specs/ML/data_ingestion.md` | `src/data/`, `src/pipeline/data_preprocessing.py` | P0 — Data Pipeline | None | Phase 2 | `[STABLE]` |
+| **1** | `specs/ML/data_ingestion.md` | `src/data/`, `src/pipeline/` | P0 — Data Pipeline | None | Phase 2 | `[STABLE]` |
 
 # Feature Specification: Data Ingestion & Preprocessing
 
@@ -26,14 +26,14 @@ The Data Ingestion & Preprocessing component is responsible for loading customer
 <details>
 <summary><strong>📂 Implementation Map</strong> (Required when Status is <code>[STABLE]</code>)</summary>
 
-**Source:** [src/data/data_loader.py](file:///home/moeen/projects/DriftGuard/src/data/data_loader.py)
+**Source:** [src/data/loader.py](file:///home/moeen/projects/DriftGuard/src/data/loader.py), [src/data/schema.py](file:///home/moeen/projects/DriftGuard/src/data/schema.py), [src/data/metadata.py](file:///home/moeen/projects/DriftGuard/src/data/metadata.py)
 
 | # | Component | Type | Description |
 |---|-----------|------|-------------|
-| 1 | [DataLoader](file:///home/moeen/projects/DriftGuard/src/data/data_loader.py#L11) | `class` | Loan data ingestion and validation loader |
-| 2 | [load_file](file:///home/moeen/projects/DriftGuard/src/data/data_loader.py#L22) | `method` | Loads CSV and Parquet files with schema validation |
-| 3 | [validate_schema](file:///home/moeen/projects/DriftGuard/src/data/data_loader.py#L50) | `method` | Validates presence of required schema columns |
-| 4 | [get_metadata](file:///home/moeen/projects/DriftGuard/src/data/data_loader.py#L68) | `method` | Generates summary statistics and file metadata |
+| 1 | [DataLoader](file:///home/moeen/projects/DriftGuard/src/data/loader.py#L9) | `class` | Loan data ingestion and validation loader |
+| 2 | [load_file](file:///home/moeen/projects/DriftGuard/src/data/loader.py#L20) | `method` | Loads CSV and Parquet files with schema validation |
+| 3 | [SchemaValidator](file:///home/moeen/projects/DriftGuard/src/data/schema.py#L10) | `class` | Validates presence of required schema columns |
+| 4 | [MetadataExtractor](file:///home/moeen/projects/DriftGuard/src/data/metadata.py#L6) | `class` | Generates summary statistics and file metadata |
 
 </details>
 
@@ -45,7 +45,7 @@ The Data Ingestion & Preprocessing component is responsible for loading customer
 
 ### REQ-DAT-002 — Feature Preprocessing & Cleaning Pipeline
 
-**Requirement:** The `DataPreprocessor` class in `src/pipeline/data_preprocessing.py` must impute missing values, encode categorical variables, and normalize numerical features.
+**Requirement:** The `DataPreprocessor` class in `src/pipeline/preprocessor.py` must impute missing values, encode categorical variables, and normalize numerical features.
 
 **Rationale:** Machine learning models require clean, numerical, and properly scaled inputs to prevent training bias and runtime exception errors.
 
@@ -60,14 +60,14 @@ The Data Ingestion & Preprocessing component is responsible for loading customer
 <details>
 <summary><strong>📂 Implementation Map</strong> (Required when Status is <code>[STABLE]</code>)</summary>
 
-**Source:** [src/pipeline/data_preprocessing.py](file:///home/moeen/projects/DriftGuard/src/pipeline/data_preprocessing.py)
+**Source:** [src/pipeline/preprocessor.py](file:///home/moeen/projects/DriftGuard/src/pipeline/preprocessor.py)
 
 | # | Component | Type | Description |
 |---|-----------|------|-------------|
-| 1 | [DataPreprocessor](file:///home/moeen/projects/DriftGuard/src/pipeline/data_preprocessing.py#L11) | `class` | Imputation, encoding, and scaling pipeline |
-| 2 | [fit](file:///home/moeen/projects/DriftGuard/src/pipeline/data_preprocessing.py#L74) | `method` | Fits column transformer pipelines on features |
-| 3 | [transform](file:///home/moeen/projects/DriftGuard/src/pipeline/data_preprocessing.py#L82) | `method` | Applies imputers, encoders, and scalers |
-| 4 | [save_preprocessor](file:///home/moeen/projects/DriftGuard/src/pipeline/data_preprocessing.py#L107) | `method` | Serializes preprocessor via joblib |
+| 1 | [DataPreprocessor](file:///home/moeen/projects/DriftGuard/src/pipeline/preprocessor.py#L11) | `class` | Imputation, encoding, and scaling pipeline |
+| 2 | [fit](file:///home/moeen/projects/DriftGuard/src/pipeline/preprocessor.py#L64) | `method` | Fits column transformer pipelines on features |
+| 3 | [transform](file:///home/moeen/projects/DriftGuard/src/pipeline/preprocessor.py#L72) | `method` | Applies imputers, encoders, and scalers |
+| 4 | [save_preprocessor](file:///home/moeen/projects/DriftGuard/src/pipeline/preprocessor.py#L97) | `method` | Serializes preprocessor via joblib |
 
 </details>
 
@@ -77,30 +77,32 @@ The Data Ingestion & Preprocessing component is responsible for loading customer
 
 ---
 
-### REQ-DAT-003 — Dataset Partitioning & Processed Persistence
+### REQ-DAT-003 — Dataset Partitioning & Pipeline Orchestration
 
-**Requirement:** Split preprocessed loan data into train/test subsets (default: 80/20) and save split datasets to `dataset/processed/`.
+**Requirement:** Split preprocessed loan data into train/test subsets (default: 80/20) and save split datasets to `dataset/processed/` via `DataIngestionPipeline`.
 
 **Rationale:** Separating train and test data prevents data leakage, while saving processed datasets avoids redundant preprocessing on repeated model training runs.
 
 **Acceptance Criteria:**
 - Performs stratified train/test split on `loan_status` label.
 - Saves `train.parquet` and `test.parquet` to `dataset/processed/`.
-- Validates label distributions match between train and test partitions.
+- Orchestrates full workflow via `DataIngestionPipeline.run()`.
 
 **Dependencies:** REQ-DAT-002
 
 <details>
 <summary><strong>📂 Implementation Map</strong> (Required when Status is <code>[STABLE]</code>)</summary>
 
-**Source:** [src/pipeline/data_preprocessing.py](file:///home/moeen/projects/DriftGuard/src/pipeline/data_preprocessing.py)
+**Source:** [src/pipeline/partition.py](file:///home/moeen/projects/DriftGuard/src/pipeline/partition.py), [src/pipeline/data_pipeline.py](file:///home/moeen/projects/DriftGuard/src/pipeline/data_pipeline.py)
 
 | # | Component | Type | Description |
 |---|-----------|------|-------------|
-| 1 | [save_processed_data](file:///home/moeen/projects/DriftGuard/src/pipeline/data_preprocessing.py#L122) | `function` | Saves train/test splits to processed path |
+| 1 | [DatasetPartitioner](file:///home/moeen/projects/DriftGuard/src/pipeline/partition.py#L7) | `class` | Stratified train/test dataset partitioner |
+| 2 | [save_processed_data](file:///home/moeen/projects/DriftGuard/src/pipeline/partition.py#L42) | `function` | Helper function for partition saving |
+| 3 | [DataIngestionPipeline](file:///home/moeen/projects/DriftGuard/src/pipeline/data_pipeline.py#L9) | `class` | End-to-end data ingestion orchestrator |
 
 </details>
 
-**Tests:** [tests/test_preprocessing.py::test_dataset_partitioning](file:///home/moeen/projects/DriftGuard/tests/test_preprocessing.py#L40)
+**Tests:** [tests/test_preprocessing.py::test_dataset_partitioning](file:///home/moeen/projects/DriftGuard/tests/test_preprocessing.py#L40), [tests/test_data_pipeline.py::test_data_ingestion_pipeline_end_to_end](file:///home/moeen/projects/DriftGuard/tests/test_data_pipeline.py#L6)
 
 **Status:** `[STABLE]`
