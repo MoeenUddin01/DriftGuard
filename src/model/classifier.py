@@ -21,6 +21,7 @@ class LoanClassifier:
         learning_rate: float = 0.1,
         random_state: int = 42,
         threshold: float = 0.5,
+        early_stopping_rounds: Optional[int] = 10,
         **kwargs: Any,
     ):
         """Initialize LoanClassifier with algorithm type and hyperparameters.
@@ -32,6 +33,7 @@ class LoanClassifier:
             learning_rate: Boosting learning rate (used for xgboost and gradient_boosting).
             random_state: Random seed for reproducibility.
             threshold: Probability threshold for classifying default risk (class 1).
+            early_stopping_rounds: Rounds of no validation improvement before stopping early (XGBoost).
             **kwargs: Additional model-specific hyperparameters.
         """
         model_type_lower = model_type.lower()
@@ -49,6 +51,7 @@ class LoanClassifier:
         self.learning_rate = learning_rate
         self.random_state = random_state
         self.threshold = threshold
+        self.early_stopping_rounds = early_stopping_rounds
         self.extra_kwargs = kwargs
 
         self.model = self._init_underlying_model()
@@ -117,6 +120,8 @@ class LoanClassifier:
         try:
             logger.info(f"Fitting LoanClassifier ({self.model_type}) on {len(X)} samples...")
             if eval_set is not None and self.model_type == "xgboost":
+                if self.early_stopping_rounds:
+                    self.model.set_params(early_stopping_rounds=self.early_stopping_rounds)
                 self.model.fit(X, y, eval_set=eval_set, verbose=False)
             else:
                 self.model.fit(X, y)
@@ -126,6 +131,7 @@ class LoanClassifier:
         except Exception as e:
             logger.error(f"Failed to fit LoanClassifier: {e}")
             raise ValueError(f"LoanClassifier fitting failed: {e}") from e
+
 
 
     def predict_proba(self, X: Union[pd.DataFrame, np.ndarray]) -> np.ndarray:
