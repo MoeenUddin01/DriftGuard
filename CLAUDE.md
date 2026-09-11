@@ -84,7 +84,8 @@ Each spec belongs to a numbered phase with clear dependencies. Phases execute in
 | Phase | Spec | Module | Priority | Depends On | Unlocks | Status |
 |-------|------|--------|----------|------------|---------|--------|
 | **1** | `specs/ML/data_ingestion.md` | `src/data/`, `src/pipeline/data_preprocessing.py` | P0 — Data Pipeline | None | Phase 2 | `[STABLE]` |
-| **2** | `specs/ML/model_training.md` | `src/model/`, `src/pipeline/model_training.py` | P0 — Model Building | Phase 1 | 3 | `[PLANNED]` |
+| **2** | `specs/ML/model_training.md` | `src/model/`, `src/pipeline/model_training.py` | P0 — Model Building | Phase 1 | 3 | `[STABLE]` |
+
 | **3** | `specs/ML/evaluation_and_deployment.md` | `src/pipeline/model_evaluation.py` | P0 — Evaluation & Deploy | Phase 2 | 4 | `[PLANNED]` |
 | **4** | `specs/agentic/drift_detector.md` | `src/agentic/drift_detector.py` | P0 — Drift Trigger | Phase 3 | 5 | `[PLANNED]` |
 | **5** | `specs/agentic/investigator.md` | `src/agentic/investigator.py` | P0 — AI Agent Core | Phase 4 | 6 | `[PLANNED]` |

@@ -1,69 +1,107 @@
 | Phase | Spec | Module | Priority | Depends On | Unlocks | Status |
 |-------|------|--------|----------|------------|---------|--------|
-| **2** | `specs/ML/model_training.md` | `src/model/`, `src/pipeline/model_training.py` | P0 — Model Building | Phase 1 | Phase 3 | `[PLANNED]` |
+| **2** | `specs/ML/model_training.md` | `src/model/`, `src/pipeline/train_pipeline.py` | P0 — Model Building | Phase 1 | Phase 3 | `[STABLE]` |
 
 # Feature Specification: Model Training Pipeline
 
 ## Overview
-The Model Training component handles model selection, hyperparameter configuration, model fitting on processed training data, and serializing model artifacts for production serving and evaluation.
+The Model Training component handles machine learning model architecture selection, hyperparameter configuration, model fitting on processed training data (`dataset/processed/train.parquet`), cross-validation tuning, and model artifact serialization for production serving and evaluation.
 
 ---
 
-### REQ-MDL-001 — Model Architecture & Hyperparameter Configuration
+### REQ-MDL-001 — Unified Loan Classifier Architecture
 
-**Requirement:** The `LoanClassifier` class in `src/model/model.py` must encapsulate binary classification model architectures (e.g. Random Forest, XGBoost, or Logistic Regression) configured via external hyperparameter dictionaries.
+**Requirement:** The `LoanClassifier` class in `src/model/classifier.py` must encapsulate binary classification models (e.g., Random Forest, Gradient Boosting, or XGBoost) behind a unified interface with configurable hyperparameters.
 
-**Rationale:** Encapsulating classifier algorithms behind a unified interface allows easy model comparison and hyperparameter tuning.
+**Rationale:** Encapsulating classifier algorithms behind a unified interface allows seamless model selection, hyperparameter customization, and standardized prediction methods.
 
 **Acceptance Criteria:**
-- Implements `fit`, `predict`, and `predict_proba` unified methods.
+- Implements unified `fit(X, y)`, `predict(X)`, and `predict_proba(X)` methods.
 - Accepts configurable parameters (e.g. `n_estimators`, `max_depth`, `learning_rate`, `random_state`).
-- Supports probability threshold adjustment for custom default risk scoring.
+- Supports custom probability thresholding for default risk scoring.
+- Returns structured probability outputs for class 0 (non-default) and class 1 (default).
 
-**Dependencies:** Scikit-Learn / XGBoost
+**Dependencies:** Scikit-Learn / XGBoost, Phase 1 (`specs/ML/data_ingestion.md`)
 
 <details>
 <summary><strong>📂 Implementation Map</strong> (Required when Status is <code>[STABLE]</code>)</summary>
 
-**Source:** [src/model/model.py](file:///home/moeen/projects/DriftGuard/src/model/model.py)
+**Source:** [src/model/classifier.py](file:///home/moeen/projects/DriftGuard/src/model/classifier.py)
 
 | # | Component | Type | Description |
 |---|-----------|------|-------------|
-| 1 | [LoanClassifier](file:///home/moeen/projects/DriftGuard/src/model/model.py#L1) | `class` | Main loan risk binary classifier wrapper |
+| 1 | [LoanClassifier](file:///home/moeen/projects/DriftGuard/src/model/classifier.py#L11) | `class` | Main loan risk binary classification wrapper encapsulating XGBoost & Sklearn |
+| 2 | [fit](file:///home/moeen/projects/DriftGuard/src/model/classifier.py#L80) | `method` | Fits underlying classifier on feature matrix X and target y |
+| 3 | [predict_proba](file:///home/moeen/projects/DriftGuard/src/model/classifier.py#L119) | `method` | Predicts class probabilities shape (N, 2) |
+| 4 | [predict](file:///home/moeen/projects/DriftGuard/src/model/classifier.py#L147) | `method` | Predicts binary labels based on configured probability threshold |
 
 </details>
 
-**Tests:** `tests/test_model.py::test_model_initialization`
+**Tests:** `tests/test_model.py::test_classifier_initialization`
 
-**Status:** `[PLANNED]`
+**Status:** `[STABLE]`
 
 ---
 
-### REQ-MDL-002 — Training Pipeline & Artifact Serialization
+### REQ-MDL-002 — Model Training & Artifact Serialization
 
-**Requirement:** The `ModelTrainer` in `src/pipeline/model_training.py` must orchestrate model training on train datasets and serialize trained model artifacts (`model.joblib`) to `src/model/artifacts/`.
+**Requirement:** The `ModelTrainer` class in `src/model/trainer.py` must fit the `LoanClassifier` model on processed training data and serialize model artifacts (`model.joblib` and `training_config.json`) to `models/` or `src/model/artifacts/`.
 
-**Rationale:** Automated pipeline execution and artifact persistence enable reproducible model deployments and audit logging.
+**Rationale:** Automated model fitting and serialization enable reproducible model deployments and audit logging.
 
 **Acceptance Criteria:**
 - Loads processed training data (`dataset/processed/train.parquet`).
-- Fits `LoanClassifier` instance on training partition.
-- Saves serialized model object (`model.joblib`) and training metadata (`training_config.json`) to model artifact directory.
-- Logs training execution duration and data shape.
+- Fits `LoanClassifier` instance on features and target `loan_status`.
+- Saves serialized model artifact (`model.joblib`) and metadata configuration (`training_config.json`).
+- Includes error handling for missing training datasets or invalid input features.
 
-**Dependencies:** REQ-DAT-003, REQ-MDL-001
+**Dependencies:** REQ-MDL-001
 
 <details>
 <summary><strong>📂 Implementation Map</strong> (Required when Status is <code>[STABLE]</code>)</summary>
 
-**Source:** [src/pipeline/model_training.py](file:///home/moeen/projects/DriftGuard/src/pipeline/model_training.py)
+**Source:** [src/model/trainer.py](file:///home/moeen/projects/DriftGuard/src/model/trainer.py)
 
 | # | Component | Type | Description |
 |---|-----------|------|-------------|
-| 1 | [ModelTrainer](file:///home/moeen/projects/DriftGuard/src/pipeline/model_training.py#L1) | `class` | Training orchestration and artifact saver |
+| 1 | [ModelTrainer](file:///home/moeen/projects/DriftGuard/src/model/trainer.py#L12) | `class` | Orchestrates dataset loading, model fitting, and artifact saving |
+| 2 | [train_from_file](file:///home/moeen/projects/DriftGuard/src/model/trainer.py#L65) | `method` | Loads parquet dataset file from disk and trains model |
+| 3 | [save_artifacts](file:///home/moeen/projects/DriftGuard/src/model/trainer.py#L90) | `method` | Serializes model.joblib and training_config.json metadata |
 
 </details>
 
-**Tests:** `tests/test_model.py::test_train_pipeline`
+**Tests:** `tests/test_model.py::test_model_trainer_fit_and_save`
 
-**Status:** `[PLANNED]`
+**Status:** `[STABLE]`
+
+---
+
+### REQ-MDL-003 — End-to-End Training Pipeline Orchestrator
+
+**Requirement:** The `ModelTrainingPipeline` class in `src/pipeline/train_pipeline.py` must orchestrate data loading from `dataset/processed/train.parquet`, model training via `ModelTrainer`, and artifact saving.
+
+**Rationale:** Providing a single top-level pipeline class allows engineers or automated CLI scripts to trigger complete model training with a single function call.
+
+**Acceptance Criteria:**
+- Executes full training workflow from processed data to saved model artifacts.
+- Emits execution progress logs and records training duration.
+- Returns trained classifier instance and artifact file paths.
+
+**Dependencies:** REQ-MDL-002
+
+<details>
+<summary><strong>📂 Implementation Map</strong> (Required when Status is <code>[STABLE]</code>)</summary>
+
+**Source:** [src/pipeline/train_pipeline.py](file:///home/moeen/projects/DriftGuard/src/pipeline/train_pipeline.py)
+
+| # | Component | Type | Description |
+|---|-----------|------|-------------|
+| 1 | [ModelTrainingPipeline](file:///home/moeen/projects/DriftGuard/src/pipeline/train_pipeline.py#L12) | `class` | Top-level execution pipeline class for model training |
+| 2 | [run](file:///home/moeen/projects/DriftGuard/src/pipeline/train_pipeline.py#L33) | `method` | Executes end-to-end training and artifact saving |
+
+</details>
+
+**Tests:** `tests/test_model.py::test_training_pipeline_end_to_end`
+
+**Status:** `[STABLE]`
+
