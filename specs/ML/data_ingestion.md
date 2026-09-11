@@ -77,15 +77,15 @@ The Data Ingestion & Preprocessing component is responsible for loading customer
 
 ---
 
-### REQ-DAT-003 — Dataset Partitioning & Pipeline Orchestration
+### REQ-DAT-003 — 3-Way Dataset Partitioning & Pipeline Orchestration
 
-**Requirement:** Split preprocessed loan data into train/test subsets (default: 80/20) and save split datasets to `dataset/processed/` via `DataIngestionPipeline`.
+**Requirement:** Split preprocessed loan data into 3-way stratified train/val/test partitions (default ratio: 70% train, 15% validation, 15% test) and save split datasets to `dataset/processed/` via `DataIngestionPipeline`.
 
-**Rationale:** Separating train and test data prevents data leakage, while saving processed datasets avoids redundant preprocessing on repeated model training runs.
+**Rationale:** Separating train, validation, and test partitions prevents data leakage, enables early-stopping evaluation during training, and guarantees an unbiased final test score.
 
 **Acceptance Criteria:**
-- Performs stratified train/test split on `loan_status` label.
-- Saves `train.parquet` and `test.parquet` to `dataset/processed/`.
+- Performs stratified 3-way train/val/test split on `loan_status` label.
+- Saves `train.parquet`, `val.parquet`, and `test.parquet` to `dataset/processed/`.
 - Orchestrates full workflow via `DataIngestionPipeline.run()`.
 
 **Dependencies:** REQ-DAT-002
@@ -97,12 +97,13 @@ The Data Ingestion & Preprocessing component is responsible for loading customer
 
 | # | Component | Type | Description |
 |---|-----------|------|-------------|
-| 1 | [DatasetPartitioner](file:///home/moeen/projects/DriftGuard/src/pipeline/partition.py#L7) | `class` | Stratified train/test dataset partitioner |
-| 2 | [save_processed_data](file:///home/moeen/projects/DriftGuard/src/pipeline/partition.py#L42) | `function` | Helper function for partition saving |
-| 3 | [DataIngestionPipeline](file:///home/moeen/projects/DriftGuard/src/pipeline/data_pipeline.py#L9) | `class` | End-to-end data ingestion orchestrator |
+| 1 | [DatasetPartitioner](file:///home/moeen/projects/DriftGuard/src/pipeline/partition.py#L10) | `class` | Stratified 3-way train/val/test dataset partitioner |
+| 2 | [save_processed_data](file:///home/moeen/projects/DriftGuard/src/pipeline/partition.py#L113) | `function` | Helper function for 3-way partition saving |
+| 3 | [DataIngestionPipeline](file:///home/moeen/projects/DriftGuard/src/pipeline/data_pipeline.py#L12) | `class` | End-to-end data ingestion orchestrator |
 
 </details>
 
-**Tests:** [tests/test_preprocessing.py::test_dataset_partitioning](file:///home/moeen/projects/DriftGuard/tests/test_preprocessing.py#L40), [tests/test_data_pipeline.py::test_data_ingestion_pipeline_end_to_end](file:///home/moeen/projects/DriftGuard/tests/test_data_pipeline.py#L6)
+**Tests:** [tests/test_preprocessing.py::test_dataset_partitioning](file:///home/moeen/projects/DriftGuard/tests/test_preprocessing.py#L45), [tests/test_data_pipeline.py::test_data_ingestion_pipeline_end_to_end](file:///home/moeen/projects/DriftGuard/tests/test_data_pipeline.py#L6)
 
 **Status:** `[STABLE]`
+
