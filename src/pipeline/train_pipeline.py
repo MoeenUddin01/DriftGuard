@@ -36,12 +36,14 @@ class ModelTrainingPipeline:
     def run(
         self,
         processed_data_path: Union[str, Path] = "dataset/processed/train.parquet",
+        val_data_path: Optional[Union[str, Path]] = "dataset/processed/val.parquet",
         artifact_dir: Union[str, Path] = "models",
     ) -> Dict[str, Union[LoanClassifier, Dict[str, Path], float]]:
         """Execute end-to-end model training pipeline.
 
         Args:
             processed_data_path: Path to input processed parquet or CSV training data.
+            val_data_path: Optional path to validation data (defaults to dataset/processed/val.parquet if it exists).
             artifact_dir: Path to directory for saving model artifacts.
 
         Returns:
@@ -54,8 +56,15 @@ class ModelTrainingPipeline:
         logger.info(f"Starting ModelTrainingPipeline execution using data at '{processed_data_path}'...")
 
         try:
+            # Check validation file existence if path provided
+            val_path_to_use = None
+            if val_data_path is not None and Path(val_data_path).exists():
+                val_path_to_use = val_data_path
+                logger.info(f"Validation data found at '{val_path_to_use}'. Including in training evaluation.")
+
             # 1. Train classifier from processed dataset file
-            classifier = self.trainer.train_from_file(processed_data_path)
+            classifier = self.trainer.train_from_file(processed_data_path, val_data_path=val_path_to_use)
+
 
             # 2. Save serialized artifacts
             artifact_paths = self.trainer.save_artifacts(output_dir=artifact_dir)

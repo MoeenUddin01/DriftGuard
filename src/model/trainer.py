@@ -45,11 +45,27 @@ class ModelTrainer:
             f"Target column '{self.target_col}' not found in dataset columns: {list(df.columns)}"
         )
 
-    def train_from_dataframe(self, df: pd.DataFrame) -> LoanClassifier:
-        """Fit classifier using an in-memory DataFrame.
+    def _extract_x_y(self, df: pd.DataFrame) -> Tuple[pd.DataFrame, Any]:
+        """Extract feature matrix X and binary target vector y from DataFrame."""
+        target_name = self._resolve_target_column(df)
+        y = df[target_name].values
+        if pd.api.types.is_object_dtype(df[target_name]) or pd.api.types.is_string_dtype(df[target_name]):
+            y = pd.Series(df[target_name]).astype(str).str.strip().map({"Y": 1, "N": 0, "1": 1, "0": 0}).values
+
+        drop_cols = [c for c in [target_name, self.id_col] if c in df.columns]
+        X = df.drop(columns=drop_cols)
+        if X.shape[1] == 0:
+            raise ValueError("No feature columns remaining after dropping target and ID columns.")
+        return X, y
+
+    def train_from_dataframe(
+        self, df: pd.DataFrame, val_df: Optional[pd.DataFrame] = None
+    ) -> LoanClassifier:
+        """Fit classifier using an in-memory DataFrame with optional validation set.
 
         Args:
             df: Processed DataFrame containing features and target column.
+            val_df: Optional validation DataFrame for evaluation during training.
 
         Returns:
             LoanClassifier: Fitted classifier instance.
@@ -57,28 +73,26 @@ class ModelTrainer:
         if not isinstance(df, pd.DataFrame) or len(df) == 0:
             raise ValueError("Input DataFrame for training is empty or invalid.")
 
-        target_name = self._resolve_target_column(df)
-        
-        y = df[target_name].values
-        # Ensure target is binary integer
-        if pd.api.types.is_object_dtype(df[target_name]) or pd.api.types.is_string_dtype(df[target_name]):
-            y = pd.Series(df[target_name]).astype(str).str.strip().map({"Y": 1, "N": 0, "1": 1, "0": 0}).values
+        X_train, y_train = self._extract_x_y(df)
+        eval_set = None
 
-        drop_cols = [c for c in [target_name, self.id_col] if c in df.columns]
-        X = df.drop(columns=drop_cols)
+        if val_df is not None and len(val_df) > 0:
+            X_val, y_val = self._extract_x_y(val_df)
+            eval_set = [(X_val, y_val)]
+            logger.info(f"Using validation set of shape X_val={X_val.shape} for training evaluation.")
 
-        if X.shape[1] == 0:
-            raise ValueError("No feature columns remaining after dropping target and ID columns.")
-
-        logger.info(f"Training model on DataFrame with shape X={X.shape}, y={y.shape}...")
-        self.classifier.fit(X, y)
+        logger.info(f"Training model on DataFrame with shape X={X_train.shape}, y={y_train.shape}...")
+        self.classifier.fit(X_train, y_train, eval_set=eval_set)
         return self.classifier
 
-    def train_from_file(self, data_path: Union[str, Path]) -> LoanClassifier:
+    def train_from_file(
+        self, data_path: Union[str, Path], val_data_path: Optional[Union[str, Path]] = None
+    ) -> LoanClassifier:
         """Load parquet or CSV processed dataset from disk and fit classifier.
 
         Args:
             data_path: Path to dataset file (`.parquet` or `.csv`).
+            val_data_path: Optional path to validation dataset file (`val.parquet`).
 
         Returns:
             LoanClassifier: Fitted classifier instance.
@@ -99,7 +113,14 @@ class ModelTrainer:
             logger.error(f"Failed to read training data from '{path}': {e}")
             raise IOError(f"Error reading dataset at '{path}': {e}") from e
 
-        return self.train_from_dataframe(df)
+        val_df = None
+        if val_data_path is not None and Path(val_data_path).exists():
+            val_path = Path(val_data_path)
+            logger.info(f"Loading validation data from '{val_path}'...")
+            val_df = pd.read_parquet(val_path) if val_path.suffix.lower() == ".parquet" else pd.read_csv(val_path)
+
+        return self.train_from_dataframe(df, val_df=val_df)
+
 
     def save_artifacts(
         self,

@@ -64,12 +64,14 @@ def test_classifier_initialization(dummy_train_df):
 
 
 def test_model_trainer_fit_and_save(dummy_train_df, tmp_path):
-    """Test ModelTrainer dataset loading, training, artifact serialization, and error handling."""
+    """Test ModelTrainer dataset loading, training with validation set, artifact serialization, and error handling."""
     data_path = tmp_path / "train.parquet"
+    val_path = tmp_path / "val.parquet"
     dummy_train_df.to_parquet(data_path, index=False)
+    dummy_train_df.iloc[:20].to_parquet(val_path, index=False)
 
     trainer = ModelTrainer(target_col="Loan_Status")
-    clf = trainer.train_from_file(data_path)
+    clf = trainer.train_from_file(data_path, val_data_path=val_path)
     assert clf.is_fitted
 
     output_dir = tmp_path / "artifacts"
@@ -103,13 +105,17 @@ def test_model_trainer_fit_and_save(dummy_train_df, tmp_path):
 
 
 def test_training_pipeline_end_to_end(dummy_train_df, tmp_path):
-    """Test end-to-end execution of ModelTrainingPipeline."""
+    """Test end-to-end execution of ModelTrainingPipeline with validation partition."""
     data_path = tmp_path / "train.parquet"
+    val_path = tmp_path / "val.parquet"
     dummy_train_df.to_parquet(data_path, index=False)
+    dummy_train_df.iloc[:20].to_parquet(val_path, index=False)
     artifact_dir = tmp_path / "models"
 
     pipeline = ModelTrainingPipeline(model_type="xgboost", n_estimators=10)
-    results = pipeline.run(processed_data_path=data_path, artifact_dir=artifact_dir)
+    results = pipeline.run(
+        processed_data_path=data_path, val_data_path=val_path, artifact_dir=artifact_dir
+    )
 
     assert "classifier" in results
     assert "artifact_paths" in results

@@ -53,9 +53,10 @@ def test_dataset_partitioning(tmp_path):
     processed = preprocessor.fit_transform(df)
     
     out_dir = tmp_path / "processed"
-    train_df, test_df = save_processed_data(processed, output_dir=out_dir, test_size=0.2, random_state=42)
+    train_df, test_df = save_processed_data(processed, output_dir=out_dir, test_size=0.2, val_size=0.0, random_state=42)
 
     assert (out_dir / "train.parquet").exists()
     assert (out_dir / "test.parquet").exists()
     assert len(train_df) == 8
     assert len(test_df) == 2
+

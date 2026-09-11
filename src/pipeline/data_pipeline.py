@@ -28,16 +28,16 @@ class DataIngestionPipeline:
         raw_file_path: Union[str, Path],
         processed_dir: Union[str, Path],
         preprocessor_save_path: Optional[Union[str, Path]] = None,
-    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    ) -> Union[Tuple[pd.DataFrame, pd.DataFrame], Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]]:
         """Execute the full data ingestion and preprocessing pipeline safely.
 
         Args:
             raw_file_path: Path to input raw dataset CSV/Parquet file.
-            processed_dir: Path to directory for saving train.parquet & test.parquet.
+            processed_dir: Path to directory for saving train, val, & test parquet partitions.
             preprocessor_save_path: Optional path for saving preprocessor joblib artifact.
 
         Returns:
-            Tuple[pd.DataFrame, pd.DataFrame]: (train_df, test_df)
+            Tuple: (train_df, val_df, test_df) or (train_df, test_df) based on partitioner configuration.
 
         Raises:
             Exception: Re-raises any error occurring during pipeline execution with logged context.
@@ -50,9 +50,9 @@ class DataIngestionPipeline:
             if preprocessor_save_path:
                 self.preprocessor.save_preprocessor(preprocessor_save_path)
 
-            train_df, test_df = self.partitioner.split_and_save(processed_df, processed_dir)
+            partitions = self.partitioner.split_and_save(processed_df, processed_dir)
             logger.info("DataIngestionPipeline executed successfully.")
-            return train_df, test_df
+            return partitions
         except Exception as e:
             logger.error(f"DataIngestionPipeline execution failed: {e}")
             raise

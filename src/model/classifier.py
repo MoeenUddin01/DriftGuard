@@ -93,12 +93,14 @@ class LoanClassifier:
         self,
         X: Union[pd.DataFrame, np.ndarray],
         y: Union[pd.Series, np.ndarray],
+        eval_set: Optional[list] = None,
     ) -> "LoanClassifier":
         """Fit the loan classifier model on feature matrix X and target y.
 
         Args:
             X: Feature matrix (DataFrame or 2D NumPy array).
             y: Binary target vector (Series or 1D NumPy array).
+            eval_set: Optional validation set list for early stopping [(X_val, y_val)].
 
         Returns:
             LoanClassifier: Fitted classifier instance.
@@ -114,13 +116,17 @@ class LoanClassifier:
 
         try:
             logger.info(f"Fitting LoanClassifier ({self.model_type}) on {len(X)} samples...")
-            self.model.fit(X, y)
+            if eval_set is not None and self.model_type == "xgboost":
+                self.model.fit(X, y, eval_set=eval_set, verbose=False)
+            else:
+                self.model.fit(X, y)
             self.is_fitted = True
             logger.info(f"LoanClassifier ({self.model_type}) fitted successfully.")
             return self
         except Exception as e:
             logger.error(f"Failed to fit LoanClassifier: {e}")
             raise ValueError(f"LoanClassifier fitting failed: {e}") from e
+
 
     def predict_proba(self, X: Union[pd.DataFrame, np.ndarray]) -> np.ndarray:
         """Predict class probabilities for X.
