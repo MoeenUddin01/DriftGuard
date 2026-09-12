@@ -37,29 +37,24 @@ class DatasetPartitioner:
         self.val_size = val_size
         self.random_state = random_state
 
-    def split_and_save(
-        self, df: pd.DataFrame, output_dir: Union[str, Path]
+    def split(
+        self, df: pd.DataFrame
     ) -> Union[Tuple[pd.DataFrame, pd.DataFrame], Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]]:
-        """Perform train/val/test split and export Parquet files.
+        """Perform train/val/test split in memory.
 
         Args:
-            df: Input preprocessed DataFrame.
-            output_dir: Output path directory.
+            df: Input DataFrame.
 
         Returns:
             Tuple: (train_df, val_df, test_df) if val_size > 0 else (train_df, test_df).
 
         Raises:
             ValueError: If input dataset is invalid or splitting fails.
-            IOError: If saving Parquet files fails.
         """
         if not isinstance(df, pd.DataFrame) or len(df) == 0:
             raise ValueError("Input DataFrame for partitioning is empty or invalid.")
 
         try:
-            out_path = Path(output_dir)
-            out_path.mkdir(parents=True, exist_ok=True)
-
             has_target = self.target_col in df.columns
 
             # Step 1: Split off test set
@@ -81,26 +76,49 @@ class DatasetPartitioner:
                     random_state=self.random_state,
                     stratify=stratify_val,
                 )
+                return train_df, val_df, test_df
             else:
-                train_df = train_val_df
-                val_df = None
+                return train_val_df, test_df
 
         except Exception as e:
             logger.error(f"Failed during dataset partitioning: {e}")
             raise ValueError(f"Dataset partitioning failed: {e}") from e
 
+    def split_and_save(
+        self, df: pd.DataFrame, output_dir: Union[str, Path]
+    ) -> Union[Tuple[pd.DataFrame, pd.DataFrame], Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]]:
+        """Perform train/val/test split and export Parquet files.
+
+        Args:
+            df: Input DataFrame.
+            output_dir: Output path directory.
+
+        Returns:
+            Tuple: (train_df, val_df, test_df) if val_size > 0 else (train_df, test_df).
+
+        Raises:
+            ValueError: If input dataset is invalid or splitting fails.
+            IOError: If saving Parquet files fails.
+        """
+        partitions = self.split(df)
+        out_path = Path(output_dir)
+        out_path.mkdir(parents=True, exist_ok=True)
+
         try:
-            train_df.to_parquet(out_path / "train.parquet", index=False)
-            test_df.to_parquet(out_path / "test.parquet", index=False)
-            
-            if val_df is not None:
+            if len(partitions) == 3:
+                train_df, val_df, test_df = partitions
+                train_df.to_parquet(out_path / "train.parquet", index=False)
                 val_df.to_parquet(out_path / "val.parquet", index=False)
+                test_df.to_parquet(out_path / "test.parquet", index=False)
                 logger.info(
                     f"Successfully partitioned data into train ({len(train_df)}), "
                     f"val ({len(val_df)}), and test ({len(test_df)}) partitions."
                 )
                 return train_df, val_df, test_df
             else:
+                train_df, test_df = partitions
+                train_df.to_parquet(out_path / "train.parquet", index=False)
+                test_df.to_parquet(out_path / "test.parquet", index=False)
                 logger.info(
                     f"Successfully partitioned data into train ({len(train_df)}) "
                     f"and test ({len(test_df)}) partitions."

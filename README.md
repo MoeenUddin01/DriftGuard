@@ -108,7 +108,7 @@ This project follows **Spec-Driven Development (SDD)**. Modules are built sequen
 | Phase | Specification | Target Module | Priority | Status |
 |-------|---------------|---------------|----------|--------|
 | **Phase 1** | [`specs/ML/data_ingestion.md`](file:///home/moeen/projects/DriftGuard/specs/ML/data_ingestion.md) | `src/data/`, `src/pipeline/data_preprocessing.py` | P0 — Data Pipeline | `[STABLE]` |
-| **Phase 2** | [`specs/ML/model_training.md`](file:///home/moeen/projects/DriftGuard/specs/ML/model_training.md) | `src/model/`, `src/pipeline/model_training.py` | P0 — Model Building | `[PLANNED]` |
+| **Phase 2** | [`specs/ML/model_training.md`](file:///home/moeen/projects/DriftGuard/specs/ML/model_training.md) | `src/model/`, `src/pipeline/model_training.py` | P0 — Model Building | `[STABLE]` |
 | **Phase 3** | [`specs/ML/evaluation_and_deployment.md`](file:///home/moeen/projects/DriftGuard/specs/ML/evaluation_and_deployment.md) | `src/pipeline/model_evaluation.py` | P0 — Evaluation & Deploy | `[PLANNED]` |
 | **Phase 4** | [`specs/agentic/drift_detector.md`](file:///home/moeen/projects/DriftGuard/specs/agentic/drift_detector.md) | `src/agentic/drift_detector.py` | P0 — Drift Trigger | `[PLANNED]` |
 | **Phase 5** | [`specs/agentic/investigator.md`](file:///home/moeen/projects/DriftGuard/specs/agentic/investigator.md) | `src/agentic/investigator.py` | P0 — AI Agent Core | `[PLANNED]` |
@@ -143,22 +143,18 @@ uv pip install -e .
 PYTHONPATH=. .venv/bin/pytest tests/
 ```
 
-### 3. Usage Example (Data Preprocessing)
+### 3. Usage Example (Data Preprocessing & Ingestion)
 
 ```python
-from src.data import DataLoader
-from src.pipeline import DataPreprocessor, save_processed_data
+from src.pipeline.data_pipeline import DataIngestionPipeline
 
-# Load raw loan dataset
-loader = DataLoader(required_columns=["ApplicantIncome", "LoanAmount", "Loan_Status"])
-raw_df = loader.load_file("dataset/raw/train_u6lujuX_CVtuZ9i.csv")
-
-# Impute missing values, encode categoricals, and scale numerical features
-preprocessor = DataPreprocessor()
-processed_df = preprocessor.fit_transform(raw_df)
-
-# Save processed train/test splits to Parquet
-train_df, test_df = save_processed_data(processed_df, output_dir="dataset/processed/")
+# Ingest, partition raw data, and fit preprocessor strictly on train partition (leakage-free)
+pipeline = DataIngestionPipeline()
+train_df, val_df, test_df = pipeline.run(
+    raw_file_path="dataset/raw/train_u6lujuX_CVtuZ9i.csv",
+    processed_dir="dataset/processed/",
+    preprocessor_save_path="models/preprocessor.joblib",
+)
 ```
 
 ---

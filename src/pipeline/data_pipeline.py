@@ -45,14 +45,39 @@ class DataIngestionPipeline:
         logger.info(f"Starting DataIngestionPipeline execution for '{raw_file_path}'...")
         try:
             raw_df = self.loader.load_file(raw_file_path)
-            processed_df = self.preprocessor.fit_transform(raw_df)
+            raw_partitions = self.partitioner.split(raw_df)
 
-            if preprocessor_save_path:
-                self.preprocessor.save_preprocessor(preprocessor_save_path)
+            out_dir = Path(processed_dir)
+            out_dir.mkdir(parents=True, exist_ok=True)
 
-            partitions = self.partitioner.split_and_save(processed_df, processed_dir)
-            logger.info("DataIngestionPipeline executed successfully.")
-            return partitions
+            if len(raw_partitions) == 3:
+                train_raw, val_raw, test_raw = raw_partitions
+                train_df = self.preprocessor.fit_transform(train_raw)
+                val_df = self.preprocessor.transform(val_raw)
+                test_df = self.preprocessor.transform(test_raw)
+
+                if preprocessor_save_path:
+                    self.preprocessor.save_preprocessor(preprocessor_save_path)
+
+                train_df.to_parquet(out_dir / "train.parquet", index=False)
+                val_df.to_parquet(out_dir / "val.parquet", index=False)
+                test_df.to_parquet(out_dir / "test.parquet", index=False)
+
+                logger.info("DataIngestionPipeline executed successfully with 3-way split (train/val/test).")
+                return train_df, val_df, test_df
+            else:
+                train_raw, test_raw = raw_partitions
+                train_df = self.preprocessor.fit_transform(train_raw)
+                test_df = self.preprocessor.transform(test_raw)
+
+                if preprocessor_save_path:
+                    self.preprocessor.save_preprocessor(preprocessor_save_path)
+
+                train_df.to_parquet(out_dir / "train.parquet", index=False)
+                test_df.to_parquet(out_dir / "test.parquet", index=False)
+
+                logger.info("DataIngestionPipeline executed successfully with 2-way split (train/test).")
+                return train_df, test_df
         except Exception as e:
             logger.error(f"DataIngestionPipeline execution failed: {e}")
             raise
