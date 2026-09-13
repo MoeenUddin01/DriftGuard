@@ -109,7 +109,7 @@ This project follows **Spec-Driven Development (SDD)**. Modules are built sequen
 |-------|---------------|---------------|----------|--------|
 | **Phase 1** | [`specs/ML/data_ingestion.md`](file:///home/moeen/projects/DriftGuard/specs/ML/data_ingestion.md) | `src/data/`, `src/pipeline/data_preprocessing.py` | P0 — Data Pipeline | `[STABLE]` |
 | **Phase 2** | [`specs/ML/model_training.md`](file:///home/moeen/projects/DriftGuard/specs/ML/model_training.md) | `src/model/`, `src/pipeline/model_training.py` | P0 — Model Building | `[STABLE]` |
-| **Phase 3** | [`specs/ML/evaluation_and_deployment.md`](file:///home/moeen/projects/DriftGuard/specs/ML/evaluation_and_deployment.md) | `src/pipeline/model_evaluation.py` | P0 — Evaluation & Deploy | `[PLANNED]` |
+| **Phase 3** | [`specs/ML/evaluation_and_deployment.md`](file:///home/moeen/projects/DriftGuard/specs/ML/evaluation_and_deployment.md) | `src/pipeline/model_evaluation.py` | P0 — Evaluation & Deploy | `[STABLE]` |
 | **Phase 4** | [`specs/agentic/drift_detector.md`](file:///home/moeen/projects/DriftGuard/specs/agentic/drift_detector.md) | `src/agentic/drift_detector.py` | P0 — Drift Trigger | `[PLANNED]` |
 | **Phase 5** | [`specs/agentic/investigator.md`](file:///home/moeen/projects/DriftGuard/specs/agentic/investigator.md) | `src/agentic/investigator.py` | P0 — AI Agent Core | `[PLANNED]` |
 | **Phase 6** | [`specs/agentic/report_generator.md`](file:///home/moeen/projects/DriftGuard/specs/agentic/report_generator.md) | `src/agentic/report_generator.py` | P1 — Engineering Reports | `[PLANNED]` |
