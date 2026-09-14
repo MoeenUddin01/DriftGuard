@@ -1,0 +1,26 @@
+project:
+  name: "DriftGuard"
+  version: "1.0.0"
+
+data:
+  raw_path: "dataset/raw/loan_data.csv"
+  processed_dir: "dataset/processed/"
+  train_path: "dataset/processed/train.parquet"
+  val_path: "dataset/processed/val.parquet"
+  test_path: "dataset/processed/test.parquet"
+  baseline_stats_path: "dataset/baseline_stats.json"
+
+model:
+  target_col: "Loan_Status"
+  artifact_path: "models/model.joblib"
+  random_state: 42
+  test_size: 0.15
+  val_size: 0.15
+  epochs: 100
+
+evaluation:
+  min_roc_auc: 0.75
+
+drift_detection:
+  p_value_threshold: 0.05
+  metrics_log_path: "logs/drift_metrics.log"
