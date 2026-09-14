@@ -67,27 +67,31 @@ DriftGuard is an enterprise machine learning system for loan default risk classi
 DriftGuard/
 ├── CLAUDE.md                     # Agent orchestration & SDD guidelines
 ├── README.md                     # System documentation & setup guide
+├── config.yaml                   # Global project & pipeline configuration
 ├── specs/                        # Feature specifications (Source of Truth)
 │   ├── ML/
 │   │   ├── data_ingestion.md     # Phase 1: Data ingestion & preprocessing spec [STABLE]
-│   │   ├── model_training.md     # Phase 2: Model training & serialization spec
-│   │   └── evaluation_and_deployment.md # Phase 3: Model evaluation & baseline logging spec
+│   │   ├── model_training.md     # Phase 2: Model training & serialization spec [STABLE]
+│   │   └── evaluation_and_deployment.md # Phase 3: Model evaluation & baseline logging spec [STABLE]
 │   └── agentic/
 │       ├── drift_detector.md     # Phase 4: Drift detection & trigger payload spec
 │       ├── investigator.md       # Phase 5: AI agent root-cause analysis spec
 │       └── report_generator.md   # Phase 6: Investigation report compilation spec
 ├── src/
 │   ├── data/                     # Ingestion & schema validation
-│   │   └── data_loader.py
+│   │   └── loader.py
 │   ├── model/                    # ML model architectures & metrics
-│   │   ├── model.py
-│   │   ├── train.py
+│   │   ├── classifier.py
+│   │   ├── trainer.py
 │   │   └── evaluation.py
 │   ├── pipeline/                 # Execution pipelines
-│   │   ├── data_preprocessing.py
-│   │   ├── model_training.py
-│   │   ├── model_evaluation.py
-│   │   └── train_pipeline.py
+│   │   ├── data_pipeline.py
+│   │   ├── partition.py
+│   │   ├── preprocessor.py
+│   │   ├── train_pipeline.py
+│   │   └── model_evaluation.py
+│   ├── utils/                    # Utilities & config loader
+│   │   └── config.py
 │   └── agentic/                  # Drift monitoring & agentic investigator
 │       ├── drift_detector.py
 │       ├── investigator.py
@@ -147,14 +151,21 @@ PYTHONPATH=. .venv/bin/pytest tests/
 
 ```python
 from src.pipeline.data_pipeline import DataIngestionPipeline
+from src.pipeline.train_pipeline import ModelTrainingPipeline
+from src.pipeline.model_evaluation import ModelEvaluationPipeline
 
-# Ingest, partition raw data, and fit preprocessor strictly on train partition (leakage-free)
-pipeline = DataIngestionPipeline()
-train_df, val_df, test_df = pipeline.run(
-    raw_file_path="dataset/raw/train_u6lujuX_CVtuZ9i.csv",
-    processed_dir="dataset/processed/",
-    preprocessor_save_path="models/preprocessor.joblib",
-)
+# 1. Ingest & partition raw data (leakage-free preprocessing)
+data_pipeline = DataIngestionPipeline()
+train_df, val_df, test_df = data_pipeline.run()
+
+# 2. Train classifier (uses config.yaml defaults: epochs=100, xgboost, etc.)
+train_pipeline = ModelTrainingPipeline()
+train_results = train_pipeline.run()
+
+# 3. Evaluate & log baseline distributions
+eval_pipeline = ModelEvaluationPipeline()
+eval_results = eval_pipeline.run()
+print(f"ROC-AUC: {eval_results['metrics']['roc_auc']:.4f}, Validated: {eval_results['is_valid']}")
 ```
 
 ---

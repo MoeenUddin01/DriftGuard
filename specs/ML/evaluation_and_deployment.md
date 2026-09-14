@@ -1,6 +1,6 @@
 | Phase | Spec | Module | Priority | Depends On | Unlocks | Status |
 |-------|------|--------|----------|------------|---------|--------|
-| **3** | `specs/ML/evaluation_and_deployment.md` | `src/pipeline/model_evaluation.py`, `src/model/evaluation.py` | P0 — Evaluation & Deploy | Phase 2 | Phase 4 | `[PLANNED]` |
+| **3** | `specs/ML/evaluation_and_deployment.md` | `src/pipeline/model_evaluation.py`, `src/model/evaluation.py` | P0 — Evaluation & Deploy | Phase 2 | Phase 4 | `[STABLE]` |
 
 # Feature Specification: Model Evaluation & Baseline Logging
 
@@ -29,13 +29,13 @@ The Evaluation & Deployment component calculates model performance metrics again
 
 | # | Component | Type | Description |
 |---|-----------|------|-------------|
-| 1 | [ModelEvaluator](file:///home/moeen/projects/DriftGuard/src/model/evaluation.py#L1) | `class` | Evaluates classification performance metrics |
+| 1 | [ModelEvaluator](file:///home/moeen/projects/DriftGuard/src/model/evaluation.py#L17) | `class` | Evaluates classification performance metrics |
 
 </details>
 
-**Tests:** `tests/test_evaluation.py::test_model_evaluation`
+**Tests:** `tests/test_evaluation.py::test_model_evaluator`
 
-**Status:** `[PLANNED]`
+**Status:** `[STABLE]`
 
 ---
 
@@ -59,10 +59,11 @@ The Evaluation & Deployment component calculates model performance metrics again
 
 | # | Component | Type | Description |
 |---|-----------|------|-------------|
-| 1 | [log_baseline_stats](file:///home/moeen/projects/DriftGuard/src/pipeline/model_evaluation.py#L1) | `function` | Computes & exports reference baseline distribution |
+| 1 | [log_baseline_stats](file:///home/moeen/projects/DriftGuard/src/pipeline/model_evaluation.py#L14) | `function` | Computes & exports reference baseline distribution |
+| 2 | [ModelEvaluationPipeline](file:///home/moeen/projects/DriftGuard/src/pipeline/model_evaluation.py#L75) | `class` | End-to-end evaluation & baseline logging orchestrator |
 
 </details>
 
-**Tests:** `tests/test_evaluation.py::test_baseline_logging`
+**Tests:** `tests/test_evaluation.py::test_log_baseline_stats`
 
-**Status:** `[PLANNED]`
+**Status:** `[STABLE]`
