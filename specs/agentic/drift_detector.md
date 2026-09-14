@@ -1,11 +1,11 @@
 | Phase | Spec | Module | Priority | Depends On | Unlocks | Status |
 |-------|------|--------|----------|------------|---------|--------|
-| **4** | `specs/agentic/drift_detector.md` | `src/agentic/drift_detector.py` | P0 — Drift Trigger | Phase 3 | Phase 5 | `[PLANNED]` |
+| **4** | `specs/agentic/drift_detector.md` | `src/agentic/drift_detector.py` | P0 — Drift Trigger | Phase 3 | Phase 5 | `[STABLE]` |
 
 # Feature Specification: Statistical Drift Detector
 
 ## Overview
-The Drift Detector component monitors incoming customer inference data, calculates statistical distribution shifts against the saved reference baseline (`dataset/baseline_stats.json`), and triggers the AI Investigator agent when significant feature or concept drift is detected.
+The Drift Detector component monitors incoming customer inference data, calculates statistical distribution shifts against the saved reference baseline (`dataset/baseline_stats.json`), and triggers the AI Investigator agent when significant feature/data drift is detected.
 
 ---
 
@@ -30,13 +30,16 @@ The Drift Detector component monitors incoming customer inference data, calculat
 
 | # | Component | Type | Description |
 |---|-----------|------|-------------|
-| 1 | [DriftDetector](file:///home/moeen/projects/DriftGuard/src/agentic/drift_detector.py#L1) | `class` | Statistical drift calculator and detector |
+| 1 | [DriftDetector](file:///home/moeen/projects/DriftGuard/src/agentic/drift_detector.py#L38) | `class` | Statistical drift calculator and detector |
+| 2 | [compute_numerical_ks](file:///home/moeen/projects/DriftGuard/src/agentic/drift_detector.py#L93) | `method` | Calculates KS 2-sample statistic and p-value |
+| 3 | [compute_numerical_psi](file:///home/moeen/projects/DriftGuard/src/agentic/drift_detector.py#L137) | `method` | Calculates decile Population Stability Index |
+| 4 | [compute_categorical_psi](file:///home/moeen/projects/DriftGuard/src/agentic/drift_detector.py#L182) | `method` | Calculates categorical Population Stability Index |
 
 </details>
 
-**Tests:** `tests/test_agentic.py::test_drift_detection`
+**Tests:** `tests/test_agentic.py::test_no_drift`, `tests/test_agentic.py::test_numerical_drift`, `tests/test_agentic.py::test_categorical_drift`
 
-**Status:** `[PLANNED]`
+**Status:** `[STABLE]`
 
 ---
 
@@ -60,10 +63,11 @@ The Drift Detector component monitors incoming customer inference data, calculat
 
 | # | Component | Type | Description |
 |---|-----------|------|-------------|
-| 1 | [trigger_investigation](file:///home/moeen/projects/DriftGuard/src/agentic/drift_detector.py#L1) | `method` | Formats payload & invokes AI Investigator |
+| 1 | [DriftIncidentPayload](file:///home/moeen/projects/DriftGuard/src/agentic/drift_detector.py#L23) | `dataclass` | Structured payload container for drift incident |
+| 2 | [detect](file:///home/moeen/projects/DriftGuard/src/agentic/drift_detector.py#L254) | `method` | Formats payload & invokes AI Investigator when drift detected |
 
 </details>
 
-**Tests:** `tests/test_agentic.py::test_drift_trigger`
+**Tests:** `tests/test_agentic.py::test_investigator_trigger_payload_structure`, `tests/test_agentic.py::test_multiple_drifted_features`
 
-**Status:** `[PLANNED]`
+**Status:** `[STABLE]`

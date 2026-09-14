@@ -47,6 +47,8 @@ def log_baseline_stats(df: pd.DataFrame, save_path: Union[str, Path]) -> Dict[st
                 "75%": float(np.percentile(col_data, 75)),
                 "max": float(col_data.max()),
                 "missing_count": int(df[col].isnull().sum()),
+                "deciles": [float(np.percentile(col_data, p)) for p in range(0, 101, 10)],
+                "quantiles_100": [float(np.percentile(col_data, p)) for p in range(0, 101, 1)],
             }
         else:
             value_counts = col_data.value_counts(normalize=True).to_dict()
