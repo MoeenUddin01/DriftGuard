@@ -74,7 +74,7 @@ DriftGuard/
 │   │   ├── model_training.md     # Phase 2: Model training & serialization spec [STABLE]
 │   │   └── evaluation_and_deployment.md # Phase 3: Model evaluation & baseline logging spec [STABLE]
 │   └── agentic/
-│       ├── drift_detector.md     # Phase 4: Drift detection & trigger payload spec
+│       ├── drift_detector.md     # Phase 4: Drift detection & trigger payload spec [STABLE]
 │       ├── investigator.md       # Phase 5: AI agent root-cause analysis spec
 │       └── report_generator.md   # Phase 6: Investigation report compilation spec
 ├── src/
@@ -114,7 +114,7 @@ This project follows **Spec-Driven Development (SDD)**. Modules are built sequen
 | **Phase 1** | [`specs/ML/data_ingestion.md`](file:///home/moeen/projects/DriftGuard/specs/ML/data_ingestion.md) | `src/data/`, `src/pipeline/data_preprocessing.py` | P0 — Data Pipeline | `[STABLE]` |
 | **Phase 2** | [`specs/ML/model_training.md`](file:///home/moeen/projects/DriftGuard/specs/ML/model_training.md) | `src/model/`, `src/pipeline/model_training.py` | P0 — Model Building | `[STABLE]` |
 | **Phase 3** | [`specs/ML/evaluation_and_deployment.md`](file:///home/moeen/projects/DriftGuard/specs/ML/evaluation_and_deployment.md) | `src/pipeline/model_evaluation.py` | P0 — Evaluation & Deploy | `[STABLE]` |
-| **Phase 4** | [`specs/agentic/drift_detector.md`](file:///home/moeen/projects/DriftGuard/specs/agentic/drift_detector.md) | `src/agentic/drift_detector.py` | P0 — Drift Trigger | `[PLANNED]` |
+| **Phase 4** | [`specs/agentic/drift_detector.md`](file:///home/moeen/projects/DriftGuard/specs/agentic/drift_detector.md) | `src/agentic/drift_detector.py` | P0 — Drift Trigger | `[STABLE]` |
 | **Phase 5** | [`specs/agentic/investigator.md`](file:///home/moeen/projects/DriftGuard/specs/agentic/investigator.md) | `src/agentic/investigator.py` | P0 — AI Agent Core | `[PLANNED]` |
 | **Phase 6** | [`specs/agentic/report_generator.md`](file:///home/moeen/projects/DriftGuard/specs/agentic/report_generator.md) | `src/agentic/report_generator.py` | P1 — Engineering Reports | `[PLANNED]` |
 
@@ -153,6 +153,7 @@ PYTHONPATH=. .venv/bin/pytest tests/
 from src.pipeline.data_pipeline import DataIngestionPipeline
 from src.pipeline.train_pipeline import ModelTrainingPipeline
 from src.pipeline.model_evaluation import ModelEvaluationPipeline
+from src.agentic.drift_detector import DriftDetector
 
 # 1. Ingest & partition raw data (leakage-free preprocessing)
 data_pipeline = DataIngestionPipeline()
@@ -166,6 +167,11 @@ train_results = train_pipeline.run()
 eval_pipeline = ModelEvaluationPipeline()
 eval_results = eval_pipeline.run()
 print(f"ROC-AUC: {eval_results['metrics']['roc_auc']:.4f}, Validated: {eval_results['is_valid']}")
+
+# 4. Run real-time statistical drift detector on new incoming customer batch
+drift_detector = DriftDetector()
+has_drift, payload, scores = drift_detector.detect(test_df)
+print(f"Drift Detected: {has_drift}, Drifted Features: {payload.drifted_features}")
 ```
 
 ---
