@@ -7,6 +7,8 @@ from src.data.loader import DataLoader
 from src.pipeline.preprocessor import DataPreprocessor
 from src.pipeline.partition import DatasetPartitioner
 
+from src.utils.config import get_config_value
+
 logger = logging.getLogger(__name__)
 
 
@@ -25,8 +27,8 @@ class DataIngestionPipeline:
 
     def run(
         self,
-        raw_file_path: Union[str, Path],
-        processed_dir: Union[str, Path],
+        raw_file_path: Optional[Union[str, Path]] = None,
+        processed_dir: Optional[Union[str, Path]] = None,
         preprocessor_save_path: Optional[Union[str, Path]] = None,
     ) -> Union[Tuple[pd.DataFrame, pd.DataFrame], Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]]:
         """Execute the full data ingestion and preprocessing pipeline safely.
@@ -42,12 +44,14 @@ class DataIngestionPipeline:
         Raises:
             Exception: Re-raises any error occurring during pipeline execution with logged context.
         """
-        logger.info(f"Starting DataIngestionPipeline execution for '{raw_file_path}'...")
+        raw_path = raw_file_path or get_config_value("data.raw_path", "dataset/raw/loan_data.csv")
+        out_path = processed_dir or get_config_value("data.processed_dir", "dataset/processed/")
+        logger.info(f"Starting DataIngestionPipeline execution for '{raw_path}'...")
         try:
-            raw_df = self.loader.load_file(raw_file_path)
+            raw_df = self.loader.load_file(raw_path)
             raw_partitions = self.partitioner.split(raw_df)
 
-            out_dir = Path(processed_dir)
+            out_dir = Path(out_path)
             out_dir.mkdir(parents=True, exist_ok=True)
 
             if len(raw_partitions) == 3:

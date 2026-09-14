@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 
 from src.model.evaluation import ModelEvaluator
+from src.utils.config import get_config_value
 
 logger = logging.getLogger(__name__)
 
@@ -79,11 +80,11 @@ class ModelEvaluationPipeline:
         
     def run(
         self,
-        model_path: Union[str, Path] = "models/model.joblib",
-        test_data_path: Union[str, Path] = "dataset/processed/test.parquet",
-        train_data_path: Union[str, Path] = "dataset/processed/train.parquet",
-        baseline_save_path: Union[str, Path] = "dataset/baseline_stats.json",
-        min_roc_auc: float = 0.75,
+        model_path: Optional[Union[str, Path]] = None,
+        test_data_path: Optional[Union[str, Path]] = None,
+        train_data_path: Optional[Union[str, Path]] = None,
+        baseline_save_path: Optional[Union[str, Path]] = None,
+        min_roc_auc: Optional[float] = None,
     ) -> Dict[str, Any]:
         """Execute evaluation, validation, and baseline logging.
         
@@ -97,13 +98,19 @@ class ModelEvaluationPipeline:
         Returns:
             Dict with execution results and metrics.
         """
+        resolved_model_path = model_path or get_config_value("model.artifact_path", "models/model.joblib")
+        resolved_test_data_path = test_data_path or get_config_value("data.test_path", "dataset/processed/test.parquet")
+        resolved_train_data_path = train_data_path or get_config_value("data.train_path", "dataset/processed/train.parquet")
+        resolved_baseline_save_path = baseline_save_path or get_config_value("data.baseline_stats_path", "dataset/baseline_stats.json")
+        resolved_min_roc_auc = min_roc_auc if min_roc_auc is not None else get_config_value("evaluation.min_roc_auc", 0.75)
+
         logger.info("Starting ModelEvaluationPipeline...")
         
         # 1. Load Artifacts & Data
         try:
-            model = joblib.load(model_path)
+            model = joblib.load(resolved_model_path)
             
-            test_path = Path(test_data_path)
+            test_path = Path(resolved_test_data_path)
             test_df = pd.read_parquet(test_path) if test_path.suffix == ".parquet" else pd.read_csv(test_path)
         except Exception as e:
             logger.error(f"Failed to load model or test data: {e}")
@@ -113,23 +120,23 @@ class ModelEvaluationPipeline:
         metrics = self.evaluator.evaluate(model, test_df)
         
         # 3. Validate Threshold
-        is_valid = self.evaluator.validate_threshold(metrics, min_roc_auc=min_roc_auc)
+        is_valid = self.evaluator.validate_threshold(metrics, min_roc_auc=resolved_min_roc_auc)
         
         results = {
             "metrics": metrics,
             "is_valid": is_valid,
-            "threshold_used": min_roc_auc,
+            "threshold_used": resolved_min_roc_auc,
         }
         
         # 4. Log Baselines if model is valid
         if is_valid:
             logger.info("Model validated successfully. Computing baseline distributions...")
             try:
-                train_path = Path(train_data_path)
+                train_path = Path(resolved_train_data_path)
                 train_df = pd.read_parquet(train_path) if train_path.suffix == ".parquet" else pd.read_csv(train_path)
                 
-                baseline_stats = log_baseline_stats(train_df, baseline_save_path)
-                results["baseline_stats_path"] = str(Path(baseline_save_path).resolve())
+                baseline_stats = log_baseline_stats(train_df, resolved_baseline_save_path)
+                results["baseline_stats_path"] = str(Path(resolved_baseline_save_path).resolve())
                 
                 # Mock "deployment" symlink update (could be implemented fully in future)
                 logger.info(f"Deployment Promotion: Model at {model_path} meets standards.")

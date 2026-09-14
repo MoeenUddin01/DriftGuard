@@ -5,6 +5,7 @@ import time
 
 from src.model.classifier import LoanClassifier
 from src.model.trainer import ModelTrainer
+from src.utils.config import get_config_value
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ class ModelTrainingPipeline:
         self,
         trainer: Optional[ModelTrainer] = None,
         model_type: str = "xgboost",
-        target_col: str = "Loan_Status",
+        target_col: Optional[str] = None,
         **model_kwargs,
     ):
         """Initialize ModelTrainingPipeline.
@@ -24,20 +25,28 @@ class ModelTrainingPipeline:
         Args:
             trainer: ModelTrainer instance or None.
             model_type: Classifier model type ('xgboost', 'random_forest', 'gradient_boosting').
-            target_col: Name of target column.
+            target_col: Name of target column. Defaults to config.yaml if None.
             **model_kwargs: Additional classifier hyperparameters.
         """
+        resolved_target_col = target_col or get_config_value("model.target_col", "Loan_Status")
+        
+        # Inject epochs from config if not explicitly passed
+        if "epochs" not in model_kwargs and "n_estimators" not in model_kwargs:
+            config_epochs = get_config_value("model.epochs")
+            if config_epochs:
+                model_kwargs["epochs"] = config_epochs
+
         if trainer is not None:
             self.trainer = trainer
         else:
             classifier = LoanClassifier(model_type=model_type, **model_kwargs)
-            self.trainer = ModelTrainer(classifier=classifier, target_col=target_col)
+            self.trainer = ModelTrainer(classifier=classifier, target_col=resolved_target_col)
 
     def run(
         self,
-        processed_data_path: Union[str, Path] = "dataset/processed/train.parquet",
-        val_data_path: Optional[Union[str, Path]] = "dataset/processed/val.parquet",
-        artifact_dir: Union[str, Path] = "models",
+        processed_data_path: Optional[Union[str, Path]] = None,
+        val_data_path: Optional[Union[str, Path]] = None,
+        artifact_dir: Optional[Union[str, Path]] = None,
     ) -> Dict[str, Union[LoanClassifier, Dict[str, Path], float]]:
         """Execute end-to-end model training pipeline.
 
@@ -52,22 +61,25 @@ class ModelTrainingPipeline:
                 - 'artifact_paths': Dict[str, Path] of saved artifact paths
                 - 'execution_time_seconds': float execution duration
         """
+        train_path = processed_data_path or get_config_value("data.train_path", "dataset/processed/train.parquet")
+        val_path_arg = val_data_path or get_config_value("data.val_path", "dataset/processed/val.parquet")
+        output_dir = artifact_dir or Path(get_config_value("model.artifact_path", "models/model.joblib")).parent
+
         start_time = time.time()
-        logger.info(f"Starting ModelTrainingPipeline execution using data at '{processed_data_path}'...")
+        logger.info(f"Starting ModelTrainingPipeline execution using data at '{train_path}'...")
 
         try:
             # Check validation file existence if path provided
             val_path_to_use = None
-            if val_data_path is not None and Path(val_data_path).exists():
-                val_path_to_use = val_data_path
+            if val_path_arg is not None and Path(val_path_arg).exists():
+                val_path_to_use = val_path_arg
                 logger.info(f"Validation data found at '{val_path_to_use}'. Including in training evaluation.")
 
             # 1. Train classifier from processed dataset file
-            classifier = self.trainer.train_from_file(processed_data_path, val_data_path=val_path_to_use)
-
+            classifier = self.trainer.train_from_file(train_path, val_data_path=val_path_to_use)
 
             # 2. Save serialized artifacts
-            artifact_paths = self.trainer.save_artifacts(output_dir=artifact_dir)
+            artifact_paths = self.trainer.save_artifacts(output_dir=output_dir)
 
             duration = round(time.time() - start_time, 4)
             logger.info(f"ModelTrainingPipeline completed successfully in {duration} seconds.")

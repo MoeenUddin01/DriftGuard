@@ -22,6 +22,7 @@ class LoanClassifier:
         random_state: int = 42,
         threshold: float = 0.5,
         early_stopping_rounds: Optional[int] = 10,
+        epochs: Optional[int] = None,
         **kwargs: Any,
     ):
         """Initialize LoanClassifier with algorithm type and hyperparameters.
@@ -34,6 +35,7 @@ class LoanClassifier:
             random_state: Random seed for reproducibility.
             threshold: Probability threshold for classifying default risk (class 1).
             early_stopping_rounds: Rounds of no validation improvement before stopping early (XGBoost).
+            epochs: Alias for n_estimators (number of boosting rounds/iterations).
             **kwargs: Additional model-specific hyperparameters.
         """
         model_type_lower = model_type.lower()
@@ -46,7 +48,8 @@ class LoanClassifier:
             raise ValueError(f"Probability threshold must be between 0.0 and 1.0, got {threshold}")
 
         self.model_type = model_type_lower
-        self.n_estimators = n_estimators
+        self.epochs = epochs
+        self.n_estimators = epochs if epochs is not None else n_estimators
         self.max_depth = max_depth
         self.learning_rate = learning_rate
         self.random_state = random_state
@@ -179,6 +182,7 @@ class LoanClassifier:
         return {
             "model_type": self.model_type,
             "n_estimators": self.n_estimators,
+            "epochs": self.epochs or self.n_estimators,
             "max_depth": self.max_depth,
             "learning_rate": self.learning_rate,
             "random_state": self.random_state,
