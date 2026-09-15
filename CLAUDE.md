@@ -17,6 +17,7 @@ The system trains a machine learning model to predict loan default risks, contin
 ```text
 .
 ├── CLAUDE.md                     # AI orchestration & SDD guidelines
+├── PROGRESS.md                   # Phased progress tracker & checklist
 ├── specs/                        # Feature specifications (Source of Truth)
 │   ├── ML/
 │   │   ├── data_ingestion.md     # Data acquisition, validation, & cleaning spec

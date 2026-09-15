@@ -66,6 +66,7 @@ DriftGuard is an enterprise machine learning system for loan default risk classi
 ```text
 DriftGuard/
 ├── CLAUDE.md                     # Agent orchestration & SDD guidelines
+├── PROGRESS.md                   # Phased progress tracker & checklist
 ├── README.md                     # System documentation & setup guide
 ├── config.yaml                   # Global project & pipeline configuration
 ├── specs/                        # Feature specifications (Source of Truth)
