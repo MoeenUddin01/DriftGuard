@@ -1,6 +1,6 @@
 | Phase | Spec | Module | Priority | Depends On | Unlocks | Status |
 |-------|------|--------|----------|------------|---------|--------|
-| **6** | `specs/agentic/report_generator.md` | `src/agentic/report_generator.py` | P1 — Engineering Reports | Phase 5 | Production Integration | `[PLANNED]` |
+| **6** | `specs/agentic/report_generator.md` | `src/agentic/report_generator.py` | P1 — Engineering Reports | Phase 5 | Production Integration | `[STABLE]` |
 
 # Feature Specification: Investigation Report Generator
 
@@ -33,13 +33,14 @@ The Report Generator component compiles diagnostic findings from the AI Investig
 
 | # | Component | Type | Description |
 |---|-----------|------|-------------|
-| 1 | [ReportGenerator](file:///home/moeen/projects/DriftGuard/src/agentic/report_generator.py#L1) | `class` | Formats and compiles investigation report |
+| 1 | [ReportGenerator](file:///home/moeen/projects/DriftGuard/src/agentic/report_generator.py#L35) | `class` | Formats and compiles investigation report |
+| 2 | [generate_report](file:///home/moeen/projects/DriftGuard/src/agentic/report_generator.py#L58) | `method` | Renders Markdown report document answering the 5 core diagnostic questions |
 
 </details>
 
-**Tests:** `tests/test_report.py::test_report_generation`
+**Tests:** `tests/test_report_generator.py::test_report_generation`
 
-**Status:** `[PLANNED]`
+**Status:** `[STABLE]`
 
 ---
 
@@ -62,10 +63,11 @@ The Report Generator component compiles diagnostic findings from the AI Investig
 
 | # | Component | Type | Description |
 |---|-----------|------|-------------|
-| 1 | [save_report](file:///home/moeen/projects/DriftGuard/src/agentic/report_generator.py#L1) | `function` | Writes report markdown file to disk |
+| 1 | [save_report](file:///home/moeen/projects/DriftGuard/src/agentic/report_generator.py#L16) | `function` | Writes report markdown file to disk |
+| 2 | [save_report](file:///home/moeen/projects/DriftGuard/src/agentic/report_generator.py#L198) | `method` | ReportGenerator method writing report markdown file to disk |
 
 </details>
 
-**Tests:** `tests/test_report.py::test_report_export`
+**Tests:** `tests/test_report_generator.py::test_report_export`
 
-**Status:** `[PLANNED]`
+**Status:** `[STABLE]`

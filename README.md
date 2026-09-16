@@ -77,7 +77,7 @@ DriftGuard/
 │   └── agentic/
 │       ├── drift_detector.md     # Phase 4: Drift detection & trigger payload spec [STABLE]
 │       ├── investigator.md       # Phase 5: AI agent root-cause analysis spec [STABLE]
-│       └── report_generator.md   # Phase 6: Investigation report compilation spec
+│       └── report_generator.md   # Phase 6: Investigation report compilation spec [STABLE]
 ├── src/
 │   ├── data/                     # Ingestion & schema validation
 │   │   └── loader.py
@@ -117,7 +117,7 @@ This project follows **Spec-Driven Development (SDD)**. Modules are built sequen
 | **Phase 3** | [`specs/ML/evaluation_and_deployment.md`](file:///home/moeen/projects/DriftGuard/specs/ML/evaluation_and_deployment.md) | `src/pipeline/model_evaluation.py` | P0 — Evaluation & Deploy | `[STABLE]` |
 | **Phase 4** | [`specs/agentic/drift_detector.md`](file:///home/moeen/projects/DriftGuard/specs/agentic/drift_detector.md) | `src/agentic/drift_detector.py` | P0 — Drift Trigger | `[STABLE]` |
 | **Phase 5** | [`specs/agentic/investigator.md`](file:///home/moeen/projects/DriftGuard/specs/agentic/investigator.md) | `src/agentic/investigator.py` | P0 — AI Agent Core | `[STABLE]` |
-| **Phase 6** | [`specs/agentic/report_generator.md`](file:///home/moeen/projects/DriftGuard/specs/agentic/report_generator.md) | `src/agentic/report_generator.py` | P1 — Engineering Reports | `[PLANNED]` |
+| **Phase 6** | [`specs/agentic/report_generator.md`](file:///home/moeen/projects/DriftGuard/specs/agentic/report_generator.md) | `src/agentic/report_generator.py` | P1 — Engineering Reports | `[STABLE]` |
 
 ---
 

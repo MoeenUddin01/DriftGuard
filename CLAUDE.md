@@ -90,7 +90,7 @@ Each spec belongs to a numbered phase with clear dependencies. Phases execute in
 | **3** | `specs/ML/evaluation_and_deployment.md` | `src/pipeline/model_evaluation.py` | P0 — Evaluation & Deploy | Phase 2 | 4 | `[STABLE]` |
 | **4** | `specs/agentic/drift_detector.md` | `src/agentic/drift_detector.py` | P0 — Drift Trigger | Phase 3 | 5 | `[STABLE]` |
 | **5** | `specs/agentic/investigator.md` | `src/agentic/investigator.py` | P0 — AI Agent Core | Phase 4 | 6 | `[STABLE]` |
-| **6** | `specs/agentic/report_generator.md` | `src/agentic/report_generator.py` | P1 — Engineering Reports | Phase 5 | Production | `[PLANNED]` |
+| **6** | `specs/agentic/report_generator.md` | `src/agentic/report_generator.py` | P1 — Engineering Reports | Phase 5 | Production | `[STABLE]` |
 
 > **Reading a spec:** Every spec file contains a header block showing its Phase number, Priority, Module path, Dependencies, and what it Unlocks.
 
