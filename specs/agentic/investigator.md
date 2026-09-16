@@ -1,6 +1,6 @@
 | Phase | Spec | Module | Priority | Depends On | Unlocks | Status |
 |-------|------|--------|----------|------------|---------|--------|
-| **5** | `specs/agentic/investigator.md` | `src/agentic/investigator.py` | P0 — AI Agent Core | Phase 4 | Phase 6 | `[PLANNED]` |
+| **5** | `specs/agentic/investigator.md` | `src/agentic/investigator.py` | P0 — AI Agent Core | Phase 4 | Phase 6 | `[STABLE]` |
 
 # Feature Specification: AI Investigator Agent
 
@@ -29,13 +29,14 @@ The AI Investigator Agent processes `DriftIncidentPayload` notifications, inspec
 
 | # | Component | Type | Description |
 |---|-----------|------|-------------|
-| 1 | [Investigator](file:///home/moeen/projects/DriftGuard/src/agentic/investigator.py#L1) | `class` | Main AI investigation agent coordinator |
+| 1 | [Investigator](file:///home/moeen/projects/DriftGuard/src/agentic/investigator.py#L18) | `class` | Main AI investigation agent coordinator |
+| 2 | [localize_shifts](file:///home/moeen/projects/DriftGuard/src/agentic/investigator.py#L93) | `method` | Pinpoints drifted features & calculates shift magnitude/direction |
 
 </details>
 
 **Tests:** `tests/test_investigator.py::test_feature_localization`
 
-**Status:** `[PLANNED]`
+**Status:** `[STABLE]`
 
 ---
 
@@ -59,10 +60,11 @@ The AI Investigator Agent processes `DriftIncidentPayload` notifications, inspec
 
 | # | Component | Type | Description |
 |---|-----------|------|-------------|
-| 1 | [analyze_root_cause](file:///home/moeen/projects/DriftGuard/src/agentic/investigator.py#L1) | `method` | Reason on root causes & performance impact |
+| 1 | [analyze_root_cause](file:///home/moeen/projects/DriftGuard/src/agentic/investigator.py#L149) | `method` | Evaluates feature importances, estimates ROC-AUC drop & formulates hypotheses |
+| 2 | [investigate](file:///home/moeen/projects/DriftGuard/src/agentic/investigator.py#L217) | `method` | Orchestrates localization, root-cause analysis & recommendations |
 
 </details>
 
-**Tests:** `tests/test_investigator.py::test_root_cause_reasoning`
+**Tests:** `tests/test_investigator.py::test_root_cause_reasoning`, `tests/test_investigator.py::test_investigate_full_workflow`
 
-**Status:** `[PLANNED]`
+**Status:** `[STABLE]`

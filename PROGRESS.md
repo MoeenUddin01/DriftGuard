@@ -1,9 +1,9 @@
 # DriftGuard Project Progress Tracker
 
-## Overall Project Status: 🚀 **Phase 4 Completed (In Progress: Phase 5 - AI Investigator Agent)**
-- **Current Active Phase:** Phase 5 — AI Investigator Agent (`specs/agentic/investigator.md`)
-- **Completed Phases:** Phase 0, Phase 1, Phase 2, Phase 3, Phase 4
-- **Last Updated:** 2026-09-15
+## Overall Project Status: 🚀 **Phase 5 Completed (In Progress: Phase 6 - Report Generator)**
+- **Current Active Phase:** Phase 6 — Engineering Report Generator (`specs/agentic/report_generator.md`)
+- **Completed Phases:** Phase 0, Phase 1, Phase 2, Phase 3, Phase 4, Phase 5
+- **Last Updated:** 2026-09-16
 
 ---
 
@@ -61,12 +61,12 @@
 
 ---
 
-### **Phase 5: AI Investigator Agent (`src/agentic/investigator.py`)** ⏳
+### **Phase 5: AI Investigator Agent (`src/agentic/investigator.py`)** ✅
 - [x] Define base `Investigator` interface and dispatch handler.
-- [ ] Implement feature localization and shift magnitude ranking (`REQ-INV-001`).
-- [ ] Implement root-cause reasoning and accuracy degradation estimation (`REQ-INV-002`).
-- [ ] Write unit tests (`tests/test_investigator.py`).
-- [ ] Verify Phase 5 completion against [specs/agentic/investigator.md](file:///home/moeen/projects/DriftGuard/specs/agentic/investigator.md).
+- [x] Implement feature localization and shift magnitude ranking (`REQ-INV-001`).
+- [x] Implement root-cause reasoning and accuracy degradation estimation (`REQ-INV-002`).
+- [x] Write unit tests ([tests/test_investigator.py](file:///home/moeen/projects/DriftGuard/tests/test_investigator.py)).
+- [x] Verify Phase 5 completion against [specs/agentic/investigator.md](file:///home/moeen/projects/DriftGuard/specs/agentic/investigator.md).
 
 ---
 
